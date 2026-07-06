@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Design tokens shadcn/ui — format HSL "H S% L%" (sans la fonction hsl()).
+  Tailwind les enveloppe avec hsl(var(--x)) dans tailwind.config.ts, ce qui
+  permet aussi d'ajouter de l'opacité (ex: bg-primary/50).
+
+  L'app est DARK-ONLY : :root et .dark portent la même palette charbon/amber.
+  Couleurs de référence des maquettes :
+    - Charbon (background) : #0B0A07  -> ~ 45 22% 4%
+    - Amber (accent/primary) : #E8953A -> ~ 31 79% 57%
+*/
+@layer base {
+  :root {
+    --background: 45 22% 4%; /* #0B0A07 charbon */
+    --foreground: 40 15% 92%; /* blanc cassé chaud */
+
+    --card: 40 14% 7%; /* surface légèrement plus claire que le fond */
+    --card-foreground: 40 15% 92%;
+
+    --popover: 40 14% 7%;
+    --popover-foreground: 40 15% 92%;
+
+    --primary: 31 79% 57%; /* #E8953A amber — couleur d'accent principale */
+    --primary-foreground: 30 45% 8%; /* texte foncé lisible sur l'amber */
+
+    --secondary: 40 10% 14%;
+    --secondary-foreground: 40 15% 92%;
+
+    --muted: 40 8% 14%;
+    --muted-foreground: 40 8% 62%; /* texte secondaire / labels */
+
+    --accent: 40 10% 16%;
+    --accent-foreground: 40 15% 92%;
+
+    --destructive: 0 62% 46%; /* rouge erreur */
+    --destructive-foreground: 40 15% 95%;
+
+    --border: 40 10% 16%; /* bordures discrètes */
+    --input: 40 10% 16%;
+    --ring: 31 79% 57%; /* halo de focus = amber */
+
+    --radius: 0.75rem; /* rayon de base des composants shadcn */
+  }
+
+  /* Même palette en .dark : la classe est posée sur <html> (layout.tsx). */
+  .dark {
+    --background: 45 22% 4%;
+    --foreground: 40 15% 92%;
+    --card: 40 14% 7%;
+    --card-foreground: 40 15% 92%;
+    --popover: 40 14% 7%;
+    --popover-foreground: 40 15% 92%;
+    --primary: 31 79% 57%;
+    --primary-foreground: 30 45% 8%;
+    --secondary: 40 10% 14%;
+    --secondary-foreground: 40 15% 92%;
+    --muted: 40 8% 14%;
+    --muted-foreground: 40 8% 62%;
+    --accent: 40 10% 16%;
+    --accent-foreground: 40 15% 92%;
+    --destructive: 0 62% 46%;
+    --destructive-foreground: 40 15% 95%;
+    --border: 40 10% 16%;
+    --input: 40 10% 16%;
+    --ring: 31 79% 57%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
