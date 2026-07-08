@@ -7,10 +7,10 @@
   Tailwind les enveloppe avec hsl(var(--x)) dans tailwind.config.ts, ce qui
   permet aussi d'ajouter de l'opacité (ex: bg-primary/50).
 
-  L'app est DARK-ONLY : :root et .dark portent la même palette charbon/amber.
+  L'app est DARK-ONLY : :root et .dark portent la même palette charbon/lime.
   Couleurs de référence des maquettes :
     - Charbon (background) : #0B0A07  -> ~ 45 22% 4%
-    - Amber (accent/primary) : #E8953A -> ~ 31 79% 57%
+    - Lime (accent/primary) : #D8FF3D -> 72 100% 62%
 */
 @layer base {
   :root {
@@ -23,8 +23,8 @@
     --popover: 40 14% 7%;
     --popover-foreground: 40 15% 92%;
 
-    --primary: 31 79% 57%; /* #E8953A amber — couleur d'accent principale */
-    --primary-foreground: 30 45% 8%; /* texte foncé lisible sur l'amber */
+    --primary: 72 100% 62%; /* #D8FF3D lime — couleur d'accent principale */
+    --primary-foreground: 80 45% 7%; /* texte foncé lisible sur le lime */
 
     --secondary: 40 10% 14%;
     --secondary-foreground: 40 15% 92%;
@@ -40,7 +40,7 @@
 
     --border: 40 10% 16%; /* bordures discrètes */
     --input: 40 10% 16%;
-    --ring: 31 79% 57%; /* halo de focus = amber */
+    --ring: 72 100% 62%; /* halo de focus = lime */
 
     --radius: 0.75rem; /* rayon de base des composants shadcn */
   }
@@ -53,8 +53,8 @@
     --card-foreground: 40 15% 92%;
     --popover: 40 14% 7%;
     --popover-foreground: 40 15% 92%;
-    --primary: 31 79% 57%;
-    --primary-foreground: 30 45% 8%;
+    --primary: 72 100% 62%;
+    --primary-foreground: 80 45% 7%;
     --secondary: 40 10% 14%;
     --secondary-foreground: 40 15% 92%;
     --muted: 40 8% 14%;
@@ -65,7 +65,7 @@
     --destructive-foreground: 40 15% 95%;
     --border: 40 10% 16%;
     --input: 40 10% 16%;
-    --ring: 31 79% 57%;
+    --ring: 72 100% 62%;
   }
 }
 

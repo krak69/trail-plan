@@ -38,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // lang="fr" + class="dark" : l'app est dark-only (thème charbon/amber).
+    // lang="fr" + class="dark" : l'app est dark-only (thème charbon/lime).
     // Les deux variables de fonts sont injectées sur <html> pour être dispo partout.
     <html
       lang="fr"
