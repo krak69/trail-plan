@@ -1,7 +1,7 @@
 "use client";
 
-// Banque d'exercices de renforcement (maquette Claude Design, accent lime).
-// Recherche + filtres par catégorie interactifs. ⚠️ Données d'exemple (EX).
+// Banque d'exercices de renforcement — branchée sur Supabase (table `exercises`).
+// Recherche + filtres par catégorie interactifs (côté client, sur les données réelles).
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -20,40 +20,16 @@ import {
   Zap,
   Accessibility,
   RefreshCw,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import type { Exercise } from "@/lib/types";
 
 const LIME = "#D8FF3D";
 
-type Exo = {
-  cat: string;
-  name: string;
-  muscles: string[];
-  mv: string;
-  mu: string;
-  type?: { Icon: LucideIcon; label: string };
-  cue: string;
-};
-
-const EX: Exo[] = [
-  { cat: "quadriceps", name: "Fentes bulgares", muscles: ["Quadriceps", "Fessiers"], mv: "12", mu: "rép / jambe", type: { Icon: Gauge, label: "Excentrique 3s" }, cue: "Descente lente et contrôlée, genou dans l'axe du pied." },
-  { cat: "quadriceps", name: "Step-down excentrique", muscles: ["Quadriceps"], mv: "10", mu: "rép / jambe", type: { Icon: TrendingDown, label: "Spécifique descente" }, cue: "Descends en 3 s depuis une marche : prépare les longues descentes." },
-  { cat: "quadriceps", name: "Chaise au mur", muscles: ["Quadriceps"], mv: "45", mu: "s", type: { Icon: Pause, label: "Isométrique" }, cue: "Cuisses parallèles au sol, dos plaqué au mur, respiration régulière." },
-  { cat: "quadriceps", name: "Squat gobelet", muscles: ["Quadriceps", "Fessiers"], mv: "15", mu: "rép", cue: "Poids sur les talons, buste droit, descends sous la parallèle." },
-  { cat: "gainage", name: "Planche gainage", muscles: ["Core", "Transverse"], mv: "60", mu: "s", cue: "Corps aligné, bassin neutre, ne pas creuser le bas du dos." },
-  { cat: "gainage", name: "Gainage latéral", muscles: ["Obliques", "Stabilité"], mv: "30", mu: "s / côté", cue: "Hanches hautes, épaules et bassin bien alignés sur la durée." },
-  { cat: "gainage", name: "Superman dorsal", muscles: ["Lombaires", "Dos"], mv: "15", mu: "rép", cue: "Extension contrôlée sans à-coups, regard vers le sol." },
-  { cat: "fessiers", name: "Pont fessier", muscles: ["Fessiers", "Ischios"], mv: "20", mu: "rép", cue: "Pousse dans les talons, verrouille les fessiers en haut." },
-  { cat: "fessiers", name: "Montées de marche", muscles: ["Fessiers", "Quadriceps"], mv: "12", mu: "rép / jambe", type: { Icon: TrendingUp, label: "Spécifique montée" }, cue: "Pousse sur la jambe haute, buste engagé vers l'avant." },
-  { cat: "mollets", name: "Mollets excentriques", muscles: ["Mollets", "Tendon d'Achille"], mv: "15", mu: "rép", type: { Icon: Gauge, label: "Excentrique" }, cue: "Montée sur 2 pieds, descente lente sur 1 pied depuis une marche." },
-  { cat: "mollets", name: "Sauts de mollets", muscles: ["Mollets"], mv: "20", mu: "rép", type: { Icon: Zap, label: "Pliométrie" }, cue: "Contact au sol court et réactif, genoux quasi tendus." },
-  { cat: "proprio", name: "Équilibre unipodal", muscles: ["Stabilité", "Chevilles"], mv: "45", mu: "s / jambe", type: { Icon: Accessibility, label: "Proprioception" }, cue: "Sur une jambe, yeux fermés pour complexifier l'exercice." },
-  { cat: "mobilite", name: "Mobilité hanches", muscles: ["Hanches"], mv: "10", mu: "rép / côté", type: { Icon: RefreshCw, label: "Mobilité" }, cue: "Amplitude progressive et contrôlée, respire sur le mouvement." },
-  { cat: "mobilite", name: "Mobilité chevilles", muscles: ["Chevilles"], mv: "10", mu: "rép / côté", type: { Icon: RefreshCw, label: "Mobilité" }, cue: "Genou vers l'avant au-dessus des orteils, talon au sol." },
-];
-
+// Catégories fixes (l'ordre d'affichage des filtres).
 const CATS = [
   { key: "all", label: "Toutes" },
   { key: "quadriceps", label: "Quadriceps" },
@@ -64,14 +40,27 @@ const CATS = [
   { key: "mobilite", label: "Mobilité" },
 ];
 
-export function ExerciseLibrary() {
+// Mappe un tag de tempo (texte en base) vers une icône lucide.
+const TEMPO_ICON: Record<string, LucideIcon> = {
+  "Excentrique 3s": Gauge,
+  Excentrique: Gauge,
+  "Spécifique descente": TrendingDown,
+  "Spécifique montée": TrendingUp,
+  Isométrique: Pause,
+  Pliométrie: Zap,
+  Proprioception: Accessibility,
+  Mobilité: RefreshCw,
+};
+const tempoIcon = (tag: string): LucideIcon => TEMPO_ICON[tag] ?? Sparkles;
+
+export function ExerciseLibrary({ exercises }: { exercises: Exercise[] }) {
   const [filter, setFilter] = useState("all");
   const [q, setQ] = useState("");
 
   const query = q.trim().toLowerCase();
-  const filtered = EX.filter(
+  const filtered = exercises.filter(
     (e) =>
-      (filter === "all" || e.cat === filter) &&
+      (filter === "all" || e.category === filter) &&
       (!query || e.name.toLowerCase().includes(query) || e.muscles.join(" ").toLowerCase().includes(query))
   );
   const activeLabel = CATS.find((c) => c.key === filter)?.label ?? "Toutes";
@@ -96,7 +85,7 @@ export function ExerciseLibrary() {
               <BookOpen className="size-3.5" />
               Bibliothèque
             </span>
-            <span className="font-mono text-xs text-muted-foreground">{EX.length} exercices</span>
+            <span className="font-mono text-xs text-muted-foreground">{exercises.length} exercices</span>
           </div>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Banque d'exercices</h1>
           <span className="max-w-[60ch] text-sm text-muted-foreground">
@@ -104,13 +93,14 @@ export function ExerciseLibrary() {
             les longues descentes.
           </span>
         </div>
-        <button
+        <Link
+          href="/banque/nouveau"
           className="inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-opacity hover:opacity-90"
           style={{ background: LIME, color: "#0B0A07" }}
         >
           <Plus className="size-4" />
           Ajouter un exercice
-        </button>
+        </Link>
       </div>
 
       {/* Recherche */}
@@ -133,7 +123,7 @@ export function ExerciseLibrary() {
       <div className="flex flex-wrap gap-2.5">
         {CATS.map((c) => {
           const active = filter === c.key;
-          const count = c.key === "all" ? EX.length : EX.filter((e) => e.cat === c.key).length;
+          const count = c.key === "all" ? exercises.length : exercises.filter((e) => e.category === c.key).length;
           return (
             <button
               key={c.key}
@@ -159,70 +149,75 @@ export function ExerciseLibrary() {
 
       {filtered.length > 0 ? (
         <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
-          {filtered.map((e, i) => (
-            <div key={e.name} className="flex flex-col overflow-hidden rounded-[20px] border border-border bg-card">
-              {/* Image placeholder */}
-              <div
-                className="relative flex h-[132px] flex-col items-center justify-center gap-1.5 border-b border-border"
-                style={{ background: "#14110B" }}
-              >
+          {filtered.map((e, i) => {
+            const TempoIcon = e.tempo_tag ? tempoIcon(e.tempo_tag) : null;
+            return (
+              <div key={e.id} className="flex flex-col overflow-hidden rounded-[20px] border border-border bg-card">
+                {/* Image placeholder */}
                 <div
-                  className="pointer-events-none absolute inset-0 opacity-70"
-                  style={{ backgroundImage: `repeating-linear-gradient(115deg, ${LIME}10 0 2px, transparent 2px 13px)` }}
-                />
-                <ImageIcon className="relative size-8" style={{ color: LIME, opacity: 0.8 }} />
-                <span className="relative font-mono text-[9px] tracking-[0.14em] text-muted-foreground">
-                  DÉMO · BANQUE D'EXERCICES
-                </span>
-                <span
-                  className="absolute left-3 top-3 flex h-6 min-w-7 items-center justify-center rounded-lg px-2 font-mono text-xs font-bold"
-                  style={{ background: "rgba(11,10,7,0.82)", color: LIME }}
+                  className="relative flex h-[132px] flex-col items-center justify-center gap-1.5 border-b border-border"
+                  style={{ background: "#14110B" }}
                 >
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                {e.type && (
+                  <div
+                    className="pointer-events-none absolute inset-0 opacity-70"
+                    style={{ backgroundImage: `repeating-linear-gradient(115deg, ${LIME}10 0 2px, transparent 2px 13px)` }}
+                  />
+                  <ImageIcon className="relative size-8" style={{ color: LIME, opacity: 0.8 }} />
+                  <span className="relative font-mono text-[9px] tracking-[0.14em] text-muted-foreground">
+                    DÉMO · BANQUE D'EXERCICES
+                  </span>
                   <span
-                    className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-lg px-2 py-1 font-mono text-[10px]"
+                    className="absolute left-3 top-3 flex h-6 min-w-7 items-center justify-center rounded-lg px-2 font-mono text-xs font-bold"
                     style={{ background: "rgba(11,10,7,0.82)", color: LIME }}
                   >
-                    <e.type.Icon className="size-3" />
-                    {e.type.label}
+                    {String(i + 1).padStart(2, "0")}
                   </span>
-                )}
-              </div>
-
-              {/* Corps */}
-              <div className="flex flex-1 flex-col gap-2.5 p-4">
-                <div className="flex items-baseline justify-between gap-2.5">
-                  <span className="font-semibold leading-tight">{e.name}</span>
-                  <span className="whitespace-nowrap font-mono text-sm font-bold" style={{ color: LIME }}>
-                    {e.mv} <span className="font-medium text-muted-foreground">{e.mu}</span>
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {e.muscles.map((m) => (
-                    <span key={m} className="rounded-lg bg-secondary px-2.5 py-1 font-mono text-[10px] text-foreground/80">
-                      {m}
+                  {e.tempo_tag && TempoIcon && (
+                    <span
+                      className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-lg px-2 py-1 font-mono text-[10px]"
+                      style={{ background: "rgba(11,10,7,0.82)", color: LIME }}
+                    >
+                      <TempoIcon className="size-3" />
+                      {e.tempo_tag}
                     </span>
-                  ))}
+                  )}
                 </div>
-                <p className="text-[13px] leading-relaxed text-muted-foreground">{e.cue}</p>
-                <div className="mt-auto flex gap-2 border-t border-border pt-2.5">
-                  <button className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary py-2.5 text-[13px] font-semibold text-foreground/80 transition-colors hover:text-foreground">
-                    <Eye className="size-4" />
-                    Détail
-                  </button>
-                  <button
-                    className="inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2.5 text-[13px] font-bold"
-                    style={{ background: `${LIME}24`, color: LIME }}
-                  >
-                    <Plus className="size-4" />
-                    Ajouter
-                  </button>
+
+                {/* Corps */}
+                <div className="flex flex-1 flex-col gap-2.5 p-4">
+                  <div className="flex items-baseline justify-between gap-2.5">
+                    <span className="font-semibold leading-tight">{e.name}</span>
+                    {e.metric_value && (
+                      <span className="whitespace-nowrap font-mono text-sm font-bold" style={{ color: LIME }}>
+                        {e.metric_value} <span className="font-medium text-muted-foreground">{e.metric_unit}</span>
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {e.muscles.map((m) => (
+                      <span key={m} className="rounded-lg bg-secondary px-2.5 py-1 font-mono text-[10px] text-foreground/80">
+                        {m}
+                      </span>
+                    ))}
+                  </div>
+                  {e.cue && <p className="text-[13px] leading-relaxed text-muted-foreground">{e.cue}</p>}
+                  <div className="mt-auto flex gap-2 border-t border-border pt-2.5">
+                    <button className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary py-2.5 text-[13px] font-semibold text-foreground/80 transition-colors hover:text-foreground">
+                      <Eye className="size-4" />
+                      Détail
+                    </button>
+                    <button
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2.5 text-[13px] font-bold"
+                      style={{ background: `${LIME}24`, color: LIME }}
+                    >
+                      <Plus className="size-4" />
+                      Ajouter
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         // État vide

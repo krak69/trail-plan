@@ -1,16 +1,18 @@
-// Types métier partagés dans l'app.
+// Types métier partagés dans l'app (miroir des tables Supabase, voir supabase/schema.sql).
 
-// Une séance d'entraînement telle que stockée dans la table Supabase `sessions`.
-// Les champs numériques sont nullable : on peut enregistrer une séance en ne
-// remplissant que la date (le reste optionnel).
-export type Session = {
+// Un exercice de la banque de renforcement.
+// user_id null + is_public = exercice du catalogue partagé.
+export type Exercise = {
   id: string;
-  user_id: string;
-  date: string; // format ISO "YYYY-MM-DD"
-  distance_km: number | null;
-  elevation_gain_m: number | null; // D+ en mètres
-  duration_min: number | null; // durée en minutes
-  feeling: number | null; // ressenti 1 (très dur) → 5 (excellent)
-  notes: string | null;
+  user_id: string | null;
+  name: string;
+  category: string; // 'quadriceps' | 'gainage' | 'fessiers' | 'mollets' | 'proprio' | 'mobilite'
+  muscles: string[];
+  metric_value: string | null;
+  metric_unit: string | null;
+  tempo_tag: string | null;
+  cue: string | null;
+  image_url: string | null;
+  is_public: boolean;
   created_at: string;
 };
