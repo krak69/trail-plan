@@ -50,6 +50,13 @@ const STATUS: Record<Status, { label: string; Icon: LucideIcon }> = {
   planned: { label: "Planifié", Icon: Clock },
 };
 
+// Chaque type de séance pointe vers son écran de détail.
+const KIND_HREF: Record<Exclude<Kind, "repos">, string> = {
+  course: "/seances/course",
+  renfo: "/seances/renfo",
+  velo: "/seances/velo",
+};
+
 type Day = {
   dn: string;
   d: string;
@@ -322,10 +329,11 @@ function DayRow({ day }: { day: Day }) {
           </div>
         </div>
       ) : (
-        // Séance
-        <div
+        // Séance (cliquable → détail)
+        <Link
+          href={KIND_HREF[day.kind as Exclude<Kind, "repos">]}
           className={cn(
-            "flex flex-1 items-start gap-3.5 rounded-2xl border p-3.5",
+            "flex flex-1 items-start gap-3.5 rounded-2xl border p-3.5 transition-colors hover:border-border/80",
             isDone ? "border-border/60 bg-card/60" : "border-border bg-card"
           )}
           style={{
@@ -372,7 +380,7 @@ function DayRow({ day }: { day: Day }) {
           </div>
 
           <ChevronRight className="size-5 shrink-0 self-center text-muted-foreground" />
-        </div>
+        </Link>
       )}
     </div>
   );
