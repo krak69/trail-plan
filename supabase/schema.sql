@@ -194,7 +194,11 @@ create table if not exists public.training_sessions (
   source                text,                      -- 'fit' | 'manual'
   felt_rpe              smallint check (felt_rpe between 1 and 10),
   sensations            text[] default '{}',        -- ['legs','energy',…]
-  nutrition             jsonb,                     -- {hydration_ml, carbs_g, gels, digest}
+  -- Nutrition (colonnes dédiées, requêtables)
+  hydration_ml          integer,
+  carbs_g               integer,
+  gels_count            integer,
+  digestive_comfort     text,                       -- 'bon' | 'moyen' | 'dur'
   notes                 text,
   completed_at          timestamptz,
 
