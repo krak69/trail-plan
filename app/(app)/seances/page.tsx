@@ -6,11 +6,11 @@ import { createClient } from "@/lib/supabase/server";
 import type { Session } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { deleteSession } from "./seances/actions";
+import { deleteSession } from "./actions";
 
-// --- Petits utilitaires d'affichage ---
+// --- Utilitaires d'affichage ---
 
-// "2026-07-08" -> "mar. 8 juil." (on force midi pour éviter les décalages TZ).
+// "2026-07-08" -> "mer. 8 juil." (midi forcé pour éviter les décalages TZ).
 function formatDate(iso: string): string {
   return new Date(`${iso}T12:00:00`).toLocaleDateString("fr-FR", {
     weekday: "short",
@@ -36,17 +36,13 @@ const FEELING_EMOJI: Record<number, string> = {
   5: "🤩",
 };
 
-// Accueil = tableau de bord protégé (le middleware bloque déjà les non-connectés).
-export default async function Home() {
+export default async function SeancesPage() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const firstName = user.user_metadata?.first_name as string | undefined;
-
-  // Récupère les séances de l'utilisateur (RLS garantit qu'il ne voit que les siennes).
   const { data, error } = await supabase
     .from("sessions")
     .select("*")
@@ -54,46 +50,32 @@ export default async function Home() {
     .order("created_at", { ascending: false });
   const sessions = (data ?? []) as Session[];
 
-  async function signOut() {
-    "use server";
-    const supabase = await createClient();
-    await supabase.auth.signOut();
-    redirect("/login");
-  }
-
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-6 py-8">
-      {/* En-tête */}
-      <header className="flex items-center justify-between">
+    <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-5 py-8 sm:px-8">
+      {/* En-tête de page */}
+      <header className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-sm text-muted-foreground">Salut</p>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {firstName ?? "Trail Plan"}
+          <p className="font-mono text-xs uppercase tracking-[0.18em] text-primary">
+            Journal
+          </p>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            Mes séances
           </h1>
         </div>
-        <form action={signOut}>
-          <Button variant="ghost" size="sm" type="submit">
-            Déconnexion
-          </Button>
-        </form>
+        <Button asChild>
+          <Link href="/seances/nouvelle">
+            <Plus className="size-4" />
+            Ajouter
+          </Link>
+        </Button>
       </header>
 
-      {/* Bouton d'ajout */}
-      <Button asChild className="w-full">
-        <Link href="/seances/nouvelle">
-          <Plus className="size-4" />
-          Ajouter une séance
-        </Link>
-      </Button>
-
-      {/* Message si la table n'existe pas encore (avant d'avoir lancé le SQL) */}
       {error && (
         <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
           Impossible de charger les séances : {error.message}
         </p>
       )}
 
-      {/* Liste des séances ou état vide */}
       {sessions.length === 0 && !error ? (
         <div className="rounded-xl border border-dashed border-border py-12 text-center text-muted-foreground">
           <Mountain className="mx-auto mb-3 size-8 opacity-50" />
@@ -109,15 +91,12 @@ export default async function Home() {
                 <Card>
                   <CardContent className="flex items-start justify-between gap-3 p-4">
                     <div className="flex flex-col gap-2">
-                      {/* Date */}
                       <p className="font-medium capitalize">
                         {formatDate(s.date)}
                         {s.feeling ? (
                           <span className="ml-2">{FEELING_EMOJI[s.feeling]}</span>
                         ) : null}
                       </p>
-
-                      {/* Stats en police mono */}
                       <div className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-sm text-muted-foreground">
                         {s.distance_km != null && (
                           <span className="inline-flex items-center gap-1">
@@ -138,14 +117,10 @@ export default async function Home() {
                           </span>
                         )}
                       </div>
-
-                      {/* Notes éventuelles */}
                       {s.notes && (
                         <p className="text-sm text-muted-foreground">{s.notes}</p>
                       )}
                     </div>
-
-                    {/* Suppression */}
                     <form action={deleteSession}>
                       <input type="hidden" name="id" value={s.id} />
                       <Button
