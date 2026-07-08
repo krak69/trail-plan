@@ -202,10 +202,13 @@ export function ExerciseLibrary({ exercises }: { exercises: Exercise[] }) {
                   </div>
                   {e.cue && <p className="text-[13px] leading-relaxed text-muted-foreground">{e.cue}</p>}
                   <div className="mt-auto flex gap-2 border-t border-border pt-2.5">
-                    <button className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary py-2.5 text-[13px] font-semibold text-foreground/80 transition-colors hover:text-foreground">
+                    <Link
+                      href={`/banque/${e.id}`}
+                      className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary py-2.5 text-[13px] font-semibold text-foreground/80 transition-colors hover:text-foreground"
+                    >
                       <Eye className="size-4" />
                       Détail
-                    </button>
+                    </Link>
                     <button
                       className="inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2.5 text-[13px] font-bold"
                       style={{ background: `${LIME}24`, color: LIME }}
