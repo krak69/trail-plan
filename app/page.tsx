@@ -1,33 +1,49 @@
+import { redirect } from "next/navigation";
+
+import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 
-// Page d'accueil minimale : sert uniquement à VALIDER LA CHAÎNE
-// (fonts Space Grotesk + JetBrains Mono, couleurs charbon/amber, shadcn Button).
-// Elle sera remplacée par le vrai écran d'accueil ensuite.
-export default function Home() {
+// Page d'accueil = tableau de bord PROTÉGÉ.
+// Le middleware bloque déjà les non-connectés, mais on revérifie ici
+// (défense en profondeur) et on récupère les infos de l'utilisateur.
+export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  // Server Action de déconnexion, définie inline (pratique pour un petit form).
+  async function signOut() {
+    "use server";
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+    redirect("/login");
+  }
+
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-8 px-6 text-center">
-      {/* Pastille amber : vérifie que la couleur primary (accent) est bien appliquée. */}
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-2xl font-bold text-primary-foreground shadow-lg shadow-primary/20">
         TP
       </div>
 
-      {/* Titre en Space Grotesk (font-sans par défaut). */}
       <div className="space-y-3">
-        <h1 className="text-4xl font-bold tracking-tight">
-          Trail <span className="text-primary">Plan</span>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Bienvenue sur <span className="text-primary">Trail Plan</span>
         </h1>
-        <p className="text-muted-foreground">
-          Setup validé — fonts, couleurs et shadcn/ui fonctionnent.
-        </p>
+        <p className="text-muted-foreground">Tu es connecté en tant que</p>
+        {/* Email en mono pour l'aspect "donnée technique" */}
+        <p className="font-mono text-sm text-foreground">{user.email}</p>
       </div>
 
-      {/* Bloc mono : vérifie que JetBrains Mono (font-mono) est bien chargée. */}
-      <p className="rounded-lg border border-border bg-card px-4 py-2 font-mono text-sm text-muted-foreground">
-        12,4 km · +860 D+ · 5:32 /km
-      </p>
-
-      {/* Bouton shadcn : vérifie cva + variantes + couleur primary amber. */}
-      <Button size="lg">Commencer</Button>
+      <form action={signOut}>
+        <Button variant="outline" type="submit">
+          Se déconnecter
+        </Button>
+      </form>
     </main>
   );
 }
