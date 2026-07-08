@@ -38,10 +38,12 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Routes publiques : la page de login et les routes d'auth (confirmation email).
+  // Routes publiques : login, inscription et routes d'auth (confirmation email).
+  const { pathname } = request.nextUrl;
   const isPublicRoute =
-    request.nextUrl.pathname.startsWith("/login") ||
-    request.nextUrl.pathname.startsWith("/auth");
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/signup") ||
+    pathname.startsWith("/auth");
 
   // Pas connecté + route protégée -> redirection vers /login.
   if (!user && !isPublicRoute) {
@@ -50,8 +52,11 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Déjà connecté mais sur /login -> on renvoie vers l'accueil.
-  if (user && request.nextUrl.pathname.startsWith("/login")) {
+  // Déjà connecté mais sur /login ou /signup -> on renvoie vers l'accueil.
+  if (
+    user &&
+    (pathname.startsWith("/login") || pathname.startsWith("/signup"))
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);

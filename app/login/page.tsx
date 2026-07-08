@@ -1,4 +1,6 @@
-import { login, signup } from "./actions";
+import Link from "next/link";
+
+import { login } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,16 +35,11 @@ export default function LoginPage({
         <CardHeader>
           <CardTitle className="text-xl">Connexion</CardTitle>
           <CardDescription>
-            Connecte-toi ou crée un compte pour suivre tes entraînements.
+            Connecte-toi pour suivre tes entraînements.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/*
-            Un seul formulaire, deux boutons :
-            - "Se connecter" appelle l'action login (formAction)
-            - "Créer un compte" appelle l'action signup
-            Le navigateur envoie les champs email/password à l'action choisie.
-          */}
+          {/* Formulaire de connexion : l'action login est appelée à la soumission. */}
           <form className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="email">Email</Label>
@@ -81,21 +78,23 @@ export default function LoginPage({
               </p>
             )}
 
-            <div className="mt-2 flex flex-col gap-3">
-              <Button formAction={login} className="w-full">
-                Se connecter
-              </Button>
-              <Button
-                formAction={signup}
-                variant="outline"
-                className="w-full"
-              >
-                Créer un compte
-              </Button>
-            </div>
+            <Button type="submit" formAction={login} className="mt-2 w-full">
+              Se connecter
+            </Button>
           </form>
         </CardContent>
       </Card>
+
+      {/* Lien vers la page d'inscription dédiée */}
+      <p className="text-sm text-muted-foreground">
+        Pas encore de compte ?{" "}
+        <Link
+          href="/signup"
+          className="font-medium text-primary hover:underline"
+        >
+          Créer un compte
+        </Link>
+      </p>
     </main>
   );
 }

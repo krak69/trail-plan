@@ -16,6 +16,9 @@ export default async function Home() {
     redirect("/login");
   }
 
+  // Prénom saisi à l'inscription (stocké dans user_metadata), sinon null.
+  const firstName = user.user_metadata?.first_name as string | undefined;
+
   // Server Action de déconnexion, définie inline (pratique pour un petit form).
   async function signOut() {
     "use server";
@@ -32,7 +35,15 @@ export default async function Home() {
 
       <div className="space-y-3">
         <h1 className="text-3xl font-bold tracking-tight">
-          Bienvenue sur <span className="text-primary">Trail Plan</span>
+          {firstName ? (
+            <>
+              Salut <span className="text-primary">{firstName}</span> 👋
+            </>
+          ) : (
+            <>
+              Bienvenue sur <span className="text-primary">Trail Plan</span>
+            </>
+          )}
         </h1>
         <p className="text-muted-foreground">Tu es connecté en tant que</p>
         {/* Email en mono pour l'aspect "donnée technique" */}
