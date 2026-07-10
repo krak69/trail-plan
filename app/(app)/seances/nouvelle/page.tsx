@@ -5,15 +5,8 @@ import { createSession } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-// Classes communes aux <select> natifs, pour matcher le style des Input.
 const selectClasses =
   "flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
 
@@ -22,18 +15,13 @@ export default function NouvelleSeancePage({
 }: {
   searchParams: { error?: string };
 }) {
-  // Date du jour au format YYYY-MM-DD pour pré-remplir le champ date.
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-6 py-8">
-      {/* Barre de retour */}
-      <Link
-        href="/"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-      >
+    <main className="mx-auto flex w-full max-w-lg flex-col gap-6 px-5 py-8 sm:px-8">
+      <Link href="/seances" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-4" />
-        Retour
+        Retour aux séances
       </Link>
 
       <Card>
@@ -41,91 +29,72 @@ export default function NouvelleSeancePage({
           <CardTitle className="text-xl">Nouvelle séance</CardTitle>
         </CardHeader>
         <CardContent>
-          <form className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="date">Date</Label>
-              <Input
-                id="date"
-                name="date"
-                type="date"
-                defaultValue={today}
-                required
-              />
-            </div>
-
-            {/* Distance + D+ côte à côte */}
-            <div className="flex gap-4">
-              <div className="flex flex-1 flex-col gap-2">
-                <Label htmlFor="distance_km">Distance (km)</Label>
-                <Input
-                  id="distance_km"
-                  name="distance_km"
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  inputMode="decimal"
-                  placeholder="12.4"
-                />
+          <form action={createSession} className="flex flex-col gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="date">Date</Label>
+                <Input id="date" name="date" type="date" defaultValue={today} style={{ colorScheme: "dark" }} required />
               </div>
-              <div className="flex flex-1 flex-col gap-2">
-                <Label htmlFor="elevation_gain_m">D+ (m)</Label>
-                <Input
-                  id="elevation_gain_m"
-                  name="elevation_gain_m"
-                  type="number"
-                  min="0"
-                  inputMode="numeric"
-                  placeholder="860"
-                />
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="kind">Type</Label>
+                <select id="kind" name="kind" defaultValue="course" className={selectClasses} required>
+                  <option value="course">Course à pied</option>
+                  <option value="renfo">Renfo</option>
+                  <option value="velo">Vélo</option>
+                  <option value="repos">Repos</option>
+                </select>
               </div>
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label htmlFor="duration_min">Durée (minutes)</Label>
-              <Input
-                id="duration_min"
-                name="duration_min"
-                type="number"
-                min="0"
-                inputMode="numeric"
-                placeholder="72"
-              />
+              <Label htmlFor="title">Titre</Label>
+              <Input id="title" name="title" placeholder="Sortie longue · Aravis" />
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label htmlFor="feeling">Ressenti</Label>
-              {/* Select natif (pas de dépendance radix), stylé comme un Input. */}
-              <select
-                id="feeling"
-                name="feeling"
-                defaultValue=""
-                className={selectClasses}
-              >
-                <option value="">—</option>
-                <option value="1">1 · Très dur 😫</option>
-                <option value="2">2 · Dur 😕</option>
-                <option value="3">3 · Correct 🙂</option>
-                <option value="4">4 · Bien 😃</option>
-                <option value="5">5 · Excellent 🤩</option>
-              </select>
+              <Label htmlFor="subtitle">Sous-titre</Label>
+              <Input id="subtitle" name="subtitle" placeholder="Course à pied · Endurance fondamentale" />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="planned_duration_min">Durée (min)</Label>
+                <Input id="planned_duration_min" name="planned_duration_min" type="number" step="any" inputMode="numeric" placeholder="150" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="planned_distance_km">Distance (km)</Label>
+                <Input id="planned_distance_km" name="planned_distance_km" type="number" step="any" inputMode="decimal" placeholder="24" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="planned_elevation_m">D+ (m)</Label>
+                <Input id="planned_elevation_m" name="planned_elevation_m" type="number" step="any" inputMode="numeric" placeholder="1350" />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="target_rpe">RPE cible (1–10)</Label>
+                <Input id="target_rpe" name="target_rpe" type="number" min="1" max="10" step="1" inputMode="numeric" placeholder="4" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="status">Statut</Label>
+                <select id="status" name="status" defaultValue="planned" className={selectClasses}>
+                  <option value="planned">Planifiée</option>
+                  <option value="done">Réalisée</option>
+                </select>
+              </div>
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                name="notes"
-                placeholder="Parcours, météo, sensations…"
-              />
+              <Label htmlFor="block_label">Bloc (optionnel)</Label>
+              <Input id="block_label" name="block_label" placeholder="Bloc spécifique 3/6" />
             </div>
 
             {searchParams.error && (
-              <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {searchParams.error}
-              </p>
+              <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{searchParams.error}</p>
             )}
 
-            <Button type="submit" formAction={createSession} className="mt-2 w-full">
+            <Button type="submit" className="mt-2 w-full">
               Enregistrer la séance
             </Button>
           </form>

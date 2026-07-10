@@ -1,5 +1,32 @@
 // Types métier partagés dans l'app (miroir des tables Supabase, voir supabase/schema.sql).
 
+// Séance d'entraînement (planifiée + réalisée). Voir table `training_sessions`.
+export type TrainingSession = {
+  id: string;
+  user_id: string;
+  objective_id: string | null;
+  date: string; // "YYYY-MM-DD"
+  kind: string; // 'course' | 'renfo' | 'velo' | 'repos'
+  block_label: string | null;
+  title: string | null;
+  subtitle: string | null;
+  objective_text: string | null;
+  planned_duration_min: number | null;
+  planned_distance_km: number | null;
+  planned_elevation_m: number | null;
+  target_rpe: number | null;
+  target_zone: string | null;
+  planned_tss: number | null;
+  status: string; // 'planned' | 'done' | 'skipped'
+  actual_duration_min: number | null;
+  actual_distance_km: number | null;
+  actual_elevation_gain_m: number | null;
+  felt_rpe: number | null;
+  notes: string | null;
+  completed_at: string | null;
+  created_at: string;
+};
+
 // Objectif de course (la cible : CCC…) + config du plan.
 export type Objective = {
   id: string;
