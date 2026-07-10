@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   Footprints,
@@ -8,6 +9,12 @@ import {
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
+import {
+  getCurrentObjective,
+  daysUntil,
+  formatFrDate,
+  formatRaceMetrics,
+} from "@/lib/objectives";
 
 /*
   DASHBOARD — reproduction de la maquette Claude Design (thème lime).
@@ -83,6 +90,20 @@ export default async function DashboardPage() {
 
   const firstName = (user.user_metadata?.first_name as string) || "Athlète";
 
+  // Objectif de course réel (le reste du dashboard est encore fictif).
+  const objective = await getCurrentObjective(supabase);
+  const j = objective ? daysUntil(objective.race_date) : null;
+  const objView = objective
+    ? {
+        name: objective.name,
+        subtitle: objective.subtitle ?? "",
+        dateLine: [formatFrDate(objective.race_date), formatRaceMetrics(objective.distance_km, objective.elevation_gain_m)]
+          .filter(Boolean)
+          .join(" · "),
+        countdown: j != null ? `J-${j}` : "—",
+      }
+    : null;
+
   return (
     <main className="flex flex-col">
       {/* ===================== HEADER ===================== */}
@@ -133,15 +154,21 @@ export default async function DashboardPage() {
               </div>
               <div className="flex flex-wrap items-baseline gap-3">
                 <span className="text-2xl font-bold tracking-tight sm:text-3xl">
-                  {mock.objective.race}
+                  {objView?.name ?? "Aucun objectif défini"}
                 </span>
                 <span className="text-sm text-muted-foreground">
-                  {mock.objective.subtitle}
+                  {objView?.subtitle}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <CalendarDays className="size-4" />
-                <span>{mock.objective.date}</span>
+                <span>
+                  {objView?.dateLine ?? (
+                    <Link href="/plan/objectif" className="text-primary hover:underline">
+                      Définis ta course cible →
+                    </Link>
+                  )}
+                </span>
               </div>
             </div>
 
@@ -149,7 +176,7 @@ export default async function DashboardPage() {
               <div className="flex gap-8 font-mono">
                 <div className="flex flex-col gap-1">
                   <span className="text-2xl font-bold text-primary">
-                    {mock.objective.countdown}
+                    {objView?.countdown ?? "—"}
                   </span>
                   <span className="text-[9px] tracking-[0.12em] text-muted-foreground">
                     ÉCHÉANCE

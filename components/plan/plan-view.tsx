@@ -4,6 +4,7 @@
 // d'objectif en 4 étapes (Objectif → Disponibilités → Profil → Générer).
 // ⚠️ Données d'exemple, aucune persistance pour l'instant.
 import { useState } from "react";
+import Link from "next/link";
 import {
   Plus,
   Flag,
@@ -65,7 +66,15 @@ function Stepper({ v, min, max, set }: { v: number; min: number; max: number; se
   );
 }
 
-export function PlanView() {
+type ObjectiveView = {
+  name: string;
+  subtitle: string | null;
+  dateLine: string;
+  jminus: number | null;
+  priority: string;
+} | null;
+
+export function PlanView({ objectiveView }: { objectiveView: ObjectiveView }) {
   const [step, setStep] = useState(1);
   const [race, setRace] = useState({ name: "CCC · Courmayeur – Champex – Chamonix", dateISO: "2026-08-28", startISO: "2026-07-06", dist: "101", dplus: "6 100", targetH: "17", targetM: "30", targetS: "00", prio: "A" });
   const [volume, setVolume] = useState(8);
@@ -121,10 +130,10 @@ export function PlanView() {
           <span className="font-mono text-xs uppercase tracking-[0.14em] text-primary">Le moteur de ton entraînement</span>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Plan</h1>
         </div>
-        <button className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground/80 hover:text-foreground">
+        <Link href="/plan/objectif" className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground/80 hover:text-foreground">
           <Plus className="size-4" />
-          Nouvel objectif
-        </button>
+          {objectiveView ? "Modifier l'objectif" : "Nouvel objectif"}
+        </Link>
       </div>
 
       {/* Objectifs passés */}
@@ -157,28 +166,38 @@ export function PlanView() {
         {/* Hero */}
         <div className="relative overflow-hidden rounded-t-[22px] border p-6" style={{ borderColor: `${LIME}52`, background: "hsl(var(--card))" }}>
           <div className="pointer-events-none absolute inset-0 opacity-50" style={{ backgroundImage: `repeating-linear-gradient(115deg, ${LIME}0f 0 2px, transparent 2px 15px)` }} />
-          <div className="relative flex flex-wrap items-center gap-6">
-            <div className="flex min-w-[300px] flex-1 flex-col gap-2">
-              <div className="flex items-center gap-2.5">
-                <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wide" style={{ background: LIME, color: "#0B0A07" }}><Flag className="size-3.5" />Objectif A</span>
-                <span className="font-mono text-xs font-bold" style={{ color: LIME }}>J-56</span>
-              </div>
-              <span className="text-2xl font-bold tracking-tight">CCC · Courmayeur – Champex – Chamonix</span>
-              <span className="font-mono text-[13px] text-foreground/80">28 août 2026 · 101 km · 6 100 D+ · objectif &lt; 18 h</span>
-              <div className="mt-2 flex items-center gap-2.5">
-                <div className="flex flex-1 gap-1">
-                  {[1, 1, 1, 0, 0, 0].map((on, i) => (
-                    <div key={i} className="h-2 flex-1 rounded-md" style={{ background: on ? LIME : "hsl(var(--secondary))" }} />
-                  ))}
+          {objectiveView ? (
+            <div className="relative flex flex-wrap items-center gap-6">
+              <div className="flex min-w-[300px] flex-1 flex-col gap-2">
+                <div className="flex items-center gap-2.5">
+                  <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wide" style={{ background: LIME, color: "#0B0A07" }}><Flag className="size-3.5" />Objectif {objectiveView.priority}</span>
+                  <span className="font-mono text-xs font-bold" style={{ color: LIME }}>{objectiveView.jminus != null ? `J-${objectiveView.jminus}` : "—"}</span>
                 </div>
-                <span className="whitespace-nowrap font-mono text-[11px] text-muted-foreground">Bloc 3 / 6 · 34 séances réalisées</span>
+                <span className="text-2xl font-bold tracking-tight">{objectiveView.name}</span>
+                {objectiveView.subtitle && <span className="text-sm text-muted-foreground">{objectiveView.subtitle}</span>}
+                <span className="font-mono text-[13px] text-foreground/80">{objectiveView.dateLine}</span>
+                <div className="mt-2 flex items-center gap-2.5">
+                  <div className="flex flex-1 gap-1">
+                    {[1, 1, 1, 0, 0, 0].map((on, i) => (
+                      <div key={i} className="h-2 flex-1 rounded-md" style={{ background: on ? LIME : "hsl(var(--secondary))" }} />
+                    ))}
+                  </div>
+                  <span className="whitespace-nowrap font-mono text-[11px] text-muted-foreground">Progression du plan · à venir</span>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2.5">
+                <Link href="/seances" className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold" style={{ background: LIME, color: "#0B0A07" }}><Footprints className="size-4" />Voir les séances</Link>
+                <Link href="/plan/objectif" className="text-center font-mono text-[10px] text-muted-foreground hover:text-foreground">Modifier l'objectif</Link>
               </div>
             </div>
-            <div className="flex flex-col gap-2.5">
-              <a href="/seances" className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold" style={{ background: LIME, color: "#0B0A07" }}><Footprints className="size-4" />Voir les séances</a>
-              <span className="text-center font-mono text-[10px] text-muted-foreground">Plan généré le 4 juin · modifiable</span>
+          ) : (
+            <div className="relative flex flex-col items-start gap-3">
+              <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Aucun objectif défini</span>
+              <span className="text-xl font-bold">Définis ta course cible</span>
+              <span className="text-sm text-muted-foreground">Renseigne ta prochaine course pour piloter ton dashboard et ton plan.</span>
+              <Link href="/plan/objectif" className="inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold" style={{ background: LIME, color: "#0B0A07" }}><Plus className="size-4" />Créer un objectif</Link>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Wizard */}

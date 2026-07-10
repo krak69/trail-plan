@@ -69,12 +69,14 @@ export function ProfilView({
   profile,
   fullName,
   initials,
+  objView,
   signOutAction,
   togglePrefAction,
 }: {
   profile: Profile;
   fullName: string;
   initials: string;
+  objView: { name: string; dateLine: string; countdown: string } | null;
   signOutAction: () => void;
   togglePrefAction: (formData: FormData) => void;
 }) {
@@ -252,20 +254,26 @@ export function ProfilView({
 
         {/* RIGHT */}
         <div className="flex flex-col gap-4">
-          {/* Objectif */}
-          <Link href="/plan" className="flex flex-col gap-3 rounded-[22px] border bg-card p-5 transition-colors hover:border-border/80" style={{ borderColor: `${LIME}40` }}>
+          {/* Objectif (réel) */}
+          <Link href={objView ? "/plan" : "/plan/objectif"} className="flex flex-col gap-3 rounded-[22px] border bg-card p-5 transition-colors hover:border-border/80" style={{ borderColor: `${LIME}40` }}>
             <div className="flex items-center justify-between">
               <span className="font-mono text-[10px] uppercase tracking-[0.14em]" style={{ color: LIME }}>Objectif en cours</span>
               <ChevronRight className="size-5 text-muted-foreground" />
             </div>
-            <span className="text-lg font-bold">CCC · Chamonix</span>
-            <span className="font-mono text-xs text-muted-foreground">28 août 2026 · 101 km · 6 100 D+</span>
-            <div className="flex items-center gap-2.5">
-              <div className="h-1.5 flex-1 rounded-md bg-secondary">
-                <div className="h-full rounded-md" style={{ width: "42%", background: LIME }} />
-              </div>
-              <span className="font-mono text-[11px] font-bold" style={{ color: LIME }}>J-56</span>
-            </div>
+            {objView ? (
+              <>
+                <span className="text-lg font-bold">{objView.name}</span>
+                <span className="font-mono text-xs text-muted-foreground">{objView.dateLine}</span>
+                <div className="flex items-center justify-end">
+                  <span className="font-mono text-[11px] font-bold" style={{ color: LIME }}>{objView.countdown}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <span className="text-lg font-bold">Aucun objectif</span>
+                <span className="text-xs text-muted-foreground">Définis ta prochaine course →</span>
+              </>
+            )}
           </Link>
 
           {/* Injuries (encore fictif) */}

@@ -1,5 +1,23 @@
 // Types métier partagés dans l'app (miroir des tables Supabase, voir supabase/schema.sql).
 
+// Objectif de course (la cible : CCC…) + config du plan.
+export type Objective = {
+  id: string;
+  user_id: string;
+  name: string;
+  subtitle: string | null;
+  race_date: string | null; // "YYYY-MM-DD"
+  distance_km: number | null;
+  elevation_gain_m: number | null;
+  target_time: string | null; // "HH:MM:SS"
+  priority: string | null; // 'A' | 'B' | 'C'
+  status: string; // 'past' | 'current' | 'future'
+  plan_start_date: string | null;
+  result_time: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 // Profil utilisateur (1 ligne / compte).
 export type Profile = {
   id: string;

@@ -2,6 +2,12 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
+import {
+  getCurrentObjective,
+  daysUntil,
+  formatFrDate,
+  formatRaceMetrics,
+} from "@/lib/objectives";
 import { ProfilView } from "@/components/profil/profil-view";
 import { signOut } from "../actions";
 import { togglePref } from "./actions";
@@ -28,6 +34,18 @@ export default async function ProfilPage() {
     profile = created;
   }
 
+  const objective = await getCurrentObjective(supabase);
+  const jm = objective ? daysUntil(objective.race_date) : null;
+  const objView = objective
+    ? {
+        name: objective.name,
+        dateLine: [formatFrDate(objective.race_date), formatRaceMetrics(objective.distance_km, objective.elevation_gain_m)]
+          .filter(Boolean)
+          .join(" · "),
+        countdown: jm != null ? `J-${jm}` : "—",
+      }
+    : null;
+
   const p = profile as Profile;
   const fullName =
     `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || (user.email ?? "Athlète");
@@ -40,6 +58,7 @@ export default async function ProfilPage() {
       profile={p}
       fullName={fullName}
       initials={initials}
+      objView={objView}
       signOutAction={signOut}
       togglePrefAction={togglePref}
     />
