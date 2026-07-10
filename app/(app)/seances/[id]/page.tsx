@@ -122,7 +122,7 @@ export default async function SessionDetailPage({ params }: { params: { id: stri
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-border bg-card p-4">
           <span className="text-sm text-muted-foreground">Séance pas encore validée.</span>
           <Button asChild>
-            <Link href="/valider">
+            <Link href={`/valider?s=${s.id}`}>
               <CheckCircle2 className="size-4" />
               Valider la séance
             </Link>

@@ -33,7 +33,25 @@ const STEPS = ["Source", "Données", "Nutrition", "Ressenti"];
 
 type Method = "fit" | "manual" | null;
 
-export function ValiderFlow() {
+// Données simulées d'un import .FIT (source rapide).
+const FIT = {
+  duration_min: "74",
+  distance_km: "9.8",
+  elevation_gain_m: "470",
+  fc_avg: "148",
+  fc_max: "174",
+  avg_pace: "7:32/km",
+};
+
+export function ValiderFlow({
+  sessionId,
+  sessionTitle,
+  validateAction,
+}: {
+  sessionId: string;
+  sessionTitle: string;
+  validateAction: (formData: FormData) => void;
+}) {
   const [step, setStep] = useState(1);
   const [method, setMethod] = useState<Method>(null);
   const [fitLoaded, setFitLoaded] = useState(false);
@@ -41,17 +59,61 @@ export function ValiderFlow() {
   const [manualM, setM] = useState("");
   const [manualS, setS] = useState("");
   const [distance, setDistance] = useState("");
+  const [dPlus, setDPlus] = useState("");
+  const [dMoins, setDMoins] = useState("");
+  const [fcAvg, setFcAvg] = useState("");
+  const [fcMax, setFcMax] = useState("");
+  const [cadence, setCadence] = useState("");
   const [terrain, setTerrain] = useState("sentier");
+  const [hydration, setHydration] = useState("");
+  const [carbs, setCarbs] = useState("");
   const [gels, setGels] = useState(2);
   const [digest, setDigest] = useState("bon");
   const [nutritionDone, setNutritionDone] = useState<boolean | null>(null);
   const [rpe, setRpe] = useState(7);
+  const [notes, setNotes] = useState("");
   const [sensations, setSensations] = useState<Record<string, boolean>>({
     legs: true,
     breath: false,
     energy: true,
     motivation: true,
   });
+
+  // Construit le FormData final (données FIT simulées OU saisie manuelle) et valide.
+  function submitValidation() {
+    const fd = new FormData();
+    fd.set("session_id", sessionId);
+    fd.set("source", method ?? "manual");
+    if (method === "fit") {
+      fd.set("duration_min", FIT.duration_min);
+      fd.set("distance_km", FIT.distance_km);
+      fd.set("elevation_gain_m", FIT.elevation_gain_m);
+      fd.set("fc_avg", FIT.fc_avg);
+      fd.set("fc_max", FIT.fc_max);
+      fd.set("avg_pace", FIT.avg_pace);
+    } else {
+      const durMin = (parseInt(manualH) || 0) * 60 + (parseInt(manualM) || 0);
+      fd.set("duration_min", durMin ? String(durMin) : "");
+      fd.set("distance_km", distance);
+      fd.set("elevation_gain_m", dPlus);
+      fd.set("elevation_loss_m", dMoins);
+      fd.set("fc_avg", fcAvg);
+      fd.set("fc_max", fcMax);
+      fd.set("cadence", cadence);
+      fd.set("avg_pace", allure ?? "");
+      fd.set("terrain", terrain);
+    }
+    fd.set("felt_rpe", String(rpe));
+    fd.set("sensations", Object.keys(sensations).filter((k) => sensations[k]).join(","));
+    if (nutritionDone) {
+      fd.set("hydration_ml", hydration);
+      fd.set("carbs_g", carbs);
+      fd.set("gels_count", String(gels));
+      fd.set("digestive_comfort", digest);
+    }
+    fd.set("notes", notes);
+    validateAction(fd);
+  }
 
   const canContinue =
     step === 1 ? method !== null : step === 2 && method === "fit" ? fitLoaded : true;
@@ -104,10 +166,10 @@ export function ValiderFlow() {
               <span className="font-mono text-[10px] uppercase tracking-[0.16em]" style={{ color: LIME }}>
                 Séance terminée · Valider
               </span>
-              <span className="text-xl font-bold tracking-tight sm:text-[26px]">Fractionné en côte · 6 × 2 min</span>
+              <span className="text-xl font-bold tracking-tight sm:text-[26px]">{sessionTitle}</span>
             </div>
             <Link
-              href="/seances/renfo"
+              href={`/seances/${sessionId}`}
               className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-secondary"
               aria-label="Fermer"
             >
@@ -261,10 +323,16 @@ export function ValiderFlow() {
                       <label className={labelCls}>Distance (km)</label>
                       <input value={distance} onChange={(e) => setDistance(e.target.value)} placeholder="9.8" className={inputCls} />
                     </div>
-                    {[["Dénivelé + (m)", "470"], ["Dénivelé − (m)", "470"], ["FC moyenne", "148"], ["FC max", "174"], ["Cadence (spm)", "172"]].map(([l, ph]) => (
+                    {([
+                      ["Dénivelé + (m)", "470", dPlus, setDPlus],
+                      ["Dénivelé − (m)", "470", dMoins, setDMoins],
+                      ["FC moyenne", "148", fcAvg, setFcAvg],
+                      ["FC max", "174", fcMax, setFcMax],
+                      ["Cadence (spm)", "172", cadence, setCadence],
+                    ] as const).map(([l, ph, val, setter]) => (
                       <div key={l} className="flex flex-col gap-1.5">
                         <label className={labelCls}>{l}</label>
-                        <input placeholder={ph} className={inputCls} />
+                        <input value={val} onChange={(e) => setter(e.target.value)} placeholder={ph} className={inputCls} />
                       </div>
                     ))}
                     <div className="flex flex-col gap-1.5">
@@ -323,14 +391,14 @@ export function ValiderFlow() {
                       <div className="flex flex-col gap-1.5">
                         <label className={labelCls}>Hydratation</label>
                         <div className="flex items-center gap-2 rounded-xl border border-border bg-[#0F0D09] px-3.5">
-                          <input placeholder="500" className="min-w-0 flex-1 bg-transparent py-3 font-mono text-[15px] outline-none" />
+                          <input value={hydration} onChange={(e) => setHydration(e.target.value)} placeholder="500" className="min-w-0 flex-1 bg-transparent py-3 font-mono text-[15px] outline-none" />
                           <span className="font-mono text-xs text-muted-foreground">ml</span>
                         </div>
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <label className={labelCls}>Glucides</label>
                         <div className="flex items-center gap-2 rounded-xl border border-border bg-[#0F0D09] px-3.5">
-                          <input placeholder="30" className="min-w-0 flex-1 bg-transparent py-3 font-mono text-[15px] outline-none" />
+                          <input value={carbs} onChange={(e) => setCarbs(e.target.value)} placeholder="30" className="min-w-0 flex-1 bg-transparent py-3 font-mono text-[15px] outline-none" />
                           <span className="font-mono text-xs text-muted-foreground">g</span>
                         </div>
                       </div>
@@ -416,6 +484,8 @@ export function ValiderFlow() {
               <div className="flex flex-col gap-2.5">
                 <span className={labelCls}>Notes</span>
                 <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
                   placeholder="Comment tu t'es senti, terrain, météo, matériel…"
                   className="min-h-[76px] resize-y rounded-xl border border-border bg-[#0F0D09] px-3.5 py-3 text-sm leading-relaxed outline-none focus:border-primary"
                 />
@@ -460,10 +530,10 @@ export function ValiderFlow() {
               <ArrowRight className="size-5" />
             </button>
           ) : (
-            <Link href="/seances" className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold" style={{ background: LIME, color: "#0B0A07" }}>
+            <button onClick={submitValidation} className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold" style={{ background: LIME, color: "#0B0A07" }}>
               <CheckCircle2 className="size-5" />
               Valider la séance
-            </Link>
+            </button>
           )}
         </div>
       </div>
